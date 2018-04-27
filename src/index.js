@@ -26,15 +26,14 @@ async function getChain (startUsername: string): Promise<string[]> {
     const usernames = await getUsernames(username)
     console.log(username, '->', usernames)
 
-    if (!usernames.length) paths.push({ i, username })
+    const newUsernames = usernames.filter(user => !cache.has(user))
 
-    const promises = usernames.map(newUsername => {
-      if (cache.has(newUsername)) return Promise.resolve()
+    if (!newUsernames.length) paths.push({ i, username })
+
+    const promises = newUsernames.map(newUsername => {
       cache.add(newUsername)
-
       graph.addEdge(username, newUsername)
-
-      return eachUsername(newUsername, ++i)
+      return eachUsername(newUsername, i + 1)
     })
 
     await Promise.all(promises)
