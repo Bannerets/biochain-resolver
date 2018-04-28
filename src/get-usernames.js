@@ -19,6 +19,7 @@ const getUsernamesFromBio = (bio: Bio): Username[] =>
     .map(slice(1, Infinity))
 
 export const getUsernames = (username: Username): Promise<Username[]> =>
-  axios.get(`https://t.me/${username}`)
-    .then(({ data }) => getBioFromPage(data))
-    .then(bio => getUsernamesFromBio(bio))
+  axios.get(`https://t.me/${username}`, { responseType: 'text' })
+    .then(res => res.data)
+    .then(getBioFromPage)
+    .then(getUsernamesFromBio)

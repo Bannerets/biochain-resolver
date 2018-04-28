@@ -1,7 +1,7 @@
 // @flow
 
 import Graph from 'graph-data-structure'
-
+import { map, concat, join } from 'ramda'
 import { getUsernames } from './get-usernames'
 
 const startUsername = process.argv[2]
@@ -11,11 +11,10 @@ type EndOfChain = {
   username: string
 }
 
-getChain(startUsername).then(arr =>
-  console.log(arr
-    .map(e => '@' + e)
-    .join(' -> ')
-  ))
+getChain(startUsername)
+  .then(map(concat('@')))
+  .then(join(' -> '))
+  .then(console.log)
 
 async function getChain (startUsername: string): Promise<string[]> {
   const graph = Graph()
