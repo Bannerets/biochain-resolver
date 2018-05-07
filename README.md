@@ -1,12 +1,15 @@
+## biochain-resolver
 
-## Installation
+### Installation
 
-```console
-$ npm install
-$ npm run build
+```sh
+git clone https://github.com/Bannerets/biochain-resolver.git biochain-resolver
+cd biochain-resolver
+npm install
+npm run build
 ```
 
-## Usage
+### Usage
 
 ```console
 $ node dist <username>
