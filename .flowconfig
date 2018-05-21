@@ -4,10 +4,12 @@
 [include]
 
 [libs]
+./flow/
 
 [lints]
 
 [options]
 module.use_strict=true
+esproposal.export_star_as=enable
 
 [strict]

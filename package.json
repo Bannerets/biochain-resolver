@@ -19,8 +19,9 @@
     "README.md"
   ],
   "dependencies": {
+    "apropos": "^0.6.2",
     "axios": "^0.18.0",
-    "graph-data-structure": "^1.8.0",
+    "graphlib": "^2.1.5",
     "ramda": "^0.25.0"
   },
   "devDependencies": {
