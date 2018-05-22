@@ -2,9 +2,10 @@
 
 import Graph from 'graph.js/dist/graph.full.js'
 import {
-  map, concat, join, head, last,
+  map, concat, join, head, last, filter, uniq,
   tap, pipe,
-  prop
+  prop,
+  when
 } from 'ramda'
 import { getUsernames } from './get-usernames'
 
@@ -41,9 +42,18 @@ const printDistances = (arr: [Username, number][]) => arr
 
 const printNewLine = tap(() => console.log())
 
+const isEmptyChain = ({ longestPath }: Chains) =>
+  longestPath.length === 0
+
+const reject = Promise.reject.bind(Promise)
+
 getChains(startUsernameNormalized)
+  .then(printNewLine)
+  .then(when(
+    isEmptyChain,
+    () => reject('Empty chain.')
+  ))
   .then(pipe(
-    printNewLine,
     tap(pipe(
       prop('distances'),
       printDistances
@@ -52,15 +62,23 @@ getChains(startUsernameNormalized)
     prop('longestPath'),
     printLongestChain
   ))
+  .catch(console.error)
 
 async function getChains (startUsername: Username): Promise<Chains> {
   const graph = new Graph()
 
+  const filterUsernames = pipe(
+    filter(user => !graph.hasVertex(user)),
+    uniq
+  )
+
   async function eachUsername (username: string, i: number = 0) {
     const fetchedUsernames = await getUsernames(username)
+      .catch(console.error) || []
+
     console.log(username, '->', fetchedUsernames)
 
-    const newUsernames = fetchedUsernames.filter(user => !graph.hasVertex(user))
+    const newUsernames = filterUsernames(fetchedUsernames)
 
     const promises = newUsernames.map(newUsername => {
       graph.createNewEdge(username, newUsername)
@@ -81,7 +99,10 @@ async function getChains (startUsername: Username): Promise<Chains> {
       graph.path(startUsername, username).length - 1
     ])
 
-  const longestPath: Username[] = graph.path(startUsername, last(sinks))
+  const lastSink = last(sinks)
+  const longestPath: Username[] = lastSink
+    ? graph.path(startUsername, lastSink)
+    : []
 
   return { distances, longestPath }
 }
