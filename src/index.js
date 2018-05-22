@@ -1,21 +1,18 @@
 // @flow
 
-import { Graph, alg } from 'graphlib'
+import Graph from 'graph.js/dist/graph.full.js'
 import {
-  map, concat, join, reduce,
+  map, concat, join, head, last,
   tap, pipe,
-  toPairs, prop
-  } from 'ramda'
-import { Maybe } from 'apropos'
+  prop
+} from 'ramda'
 import { getUsernames } from './get-usernames'
 
 type Username = string
-type NodesObj = { [key: Username]: { distance: number, predecessor?: Username } }
-type NodesMap = Map<Username, { distance: number, predecessor?: Username }>
 type Sinks = Username[]
 type Chains = {
-  sinks: Sinks,
-  nodes: NodesMap
+  distances: [Username, number][],
+  longestPath: Username[]
 }
 
 const startUsername = process.argv[2]
@@ -24,52 +21,49 @@ const startUsernameNormalized = startUsername[0] === '@'
   ? startUsername.slice(1)
   : startUsername
 
-const printChain: NodesMap => void = pipe(
-  tap(() => console.log('The longest chain:')),
-  map => map.keys(),
-  Array.from,
+const printChain: Username[] => void = pipe(
   map(concat('@')),
   join(' -> '),
   console.log
 )
 
-const printSink = (sink: Username, distance: string) =>
-  console.log(`${startUsername} ----> ${sink} (distance: ${distance})`)
+const printLongestChain: Username[] => void = pipe(
+  tap(() => console.log('The longest chain:')),
+  printChain
+)
 
-const printSinks = (sinks: Sinks, nodes: NodesMap) =>
-  sinks.forEach(sink =>
-    printSink(sink,
-      Maybe.fromNullable(nodes.get(sink))
-        .map(prop('distance'))
-        .map(String)
-        .fold(() => 'ERR', x => x)
-    ))
+const printDistance = (user1: Username, user2: Username, distance: string) =>
+  console.log(`@${user1} ----> @${user2} (distance: ${distance})`)
+
+const printDistances = (arr: [Username, number][]) => arr
+  .forEach(([ username, distance ]) =>
+    printDistance(startUsernameNormalized, username, distance.toString()))
 
 const printNewLine = tap(() => console.log())
 
 getChains(startUsernameNormalized)
-  .then(printNewLine)
-  .then(tap(obj => printSinks(obj.sinks, obj.nodes)))
-  .then(printNewLine)
-  .then(prop('nodes'))
-  .then(printChain)
-
-const objectToMap = obj =>
-  new Map(toPairs(obj))
+  .then(pipe(
+    printNewLine,
+    tap(pipe(
+      prop('distances'),
+      printDistances
+    )),
+    printNewLine,
+    prop('longestPath'),
+    printLongestChain
+  ))
 
 async function getChains (startUsername: Username): Promise<Chains> {
-  const graph = new Graph({ directed: true })
-  const visited: Set<string> = new Set()
+  const graph = new Graph()
 
   async function eachUsername (username: string, i: number = 0) {
-    const usernames = await getUsernames(username)
-    console.log(username, '->', usernames)
+    const fetchedUsernames = await getUsernames(username)
+    console.log(username, '->', fetchedUsernames)
 
-    const newUsernames = usernames.filter(user => !visited.has(user))
+    const newUsernames = fetchedUsernames.filter(user => !graph.hasVertex(user))
 
     const promises = newUsernames.map(newUsername => {
-      visited.add(newUsername)
-      graph.setEdge(username, newUsername)
+      graph.createNewEdge(username, newUsername)
       return eachUsername(newUsername, i + 1)
     })
 
@@ -78,9 +72,16 @@ async function getChains (startUsername: Username): Promise<Chains> {
 
   await eachUsername(startUsername)
 
-  const nodesObj: NodesObj = alg.dijkstra(graph, startUsername)
-  const nodes: NodesMap = objectToMap(nodesObj)
-  const sinks: Sinks = graph.sinks()
+  const sinks: Sinks = Array.from(graph.sinks())
+    .map(head)
 
-  return { nodes, sinks }
+  const distances: [Username, number][] = sinks
+    .map(username => [
+      username,
+      graph.path(startUsername, username).length - 1
+    ])
+
+  const longestPath: Username[] = graph.path(startUsername, last(sinks))
+
+  return { distances, longestPath }
 }

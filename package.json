@@ -19,9 +19,8 @@
     "README.md"
   ],
   "dependencies": {
-    "apropos": "^0.6.2",
     "axios": "^0.18.0",
-    "graphlib": "^2.1.5",
+    "graph.js": "^1.21.1",
     "ramda": "^0.25.0"
   },
   "devDependencies": {

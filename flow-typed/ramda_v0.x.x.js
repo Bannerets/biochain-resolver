@@ -1,6 +1,3 @@
-// flow-typed signature: 8bfc0e33f86ebe32d86c99cffd432404
-// flow-typed version: fa010af930/ramda_v0.x.x/flow_>=v0.62.x
-
 /* eslint-disable no-unused-vars, no-redeclare */
 
 type Transformer<A, B> = {
@@ -641,6 +638,7 @@ declare module ramda {
 
   declare function head<T, V: Array<T>>(xs: V): ?T;
   declare function head<T, V: string>(xs: V): V;
+  declare function head<T, V: [T, T]>(xs: V): T;
 
   declare function into<I, T, A: Array<T>, R: Array<*> | string | Object>(
     accum: R,
@@ -700,7 +698,8 @@ declare module ramda {
     ...rest: Array<void>
   ): (xs: Array<any>) => string;
 
-  declare function last<T, V: Array<T>>(xs: V): ?T;
+  //declare function last<T, V: Array<T>>(xs: V): ?T;
+  declare function last<T, V: Array<T>>(xs: V): T;
   declare function last<T, V: string>(xs: V): V;
 
   declare function none<T>(fn: UnaryPredicateFn<T>, xs: Array<T>): boolean;
