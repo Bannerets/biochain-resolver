@@ -698,7 +698,7 @@ declare module ramda {
     ...rest: Array<void>
   ): (xs: Array<any>) => string;
 
-  declare function last<T, V: Array<T>>(xs: V): T;
+  declare function last<T, V: Array<T>>(xs: V): ?T;
   declare function last<T, V: string>(xs: V): V;
 
   declare function none<T>(fn: UnaryPredicateFn<T>, xs: Array<T>): boolean;
